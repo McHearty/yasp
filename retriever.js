@@ -15,6 +15,14 @@ var replayRequests = 0;
 var launch = new Date();
 var ready = false;
 var a = [];
+//todo register service
+var socket = require('socket.io-client')('http://localhost:5300' || process.env.REGISTRY_URL);
+socket.on('connect', function() {
+    socket.emit('retriever', genStats());
+    socket.on('heartbeat', function() {
+        socket.emit('retriever', genStats());
+   });
+});
 while (a.length < users.length) a.push(a.length + 0);
 async.map(a, function(i, cb) {
     var Steam = new steam.SteamClient();
@@ -72,6 +80,7 @@ async.map(a, function(i, cb) {
             //iterate through friends and accept requests/populate hash
             var steamID = prop;
             var relationship = Steam.friends[prop];
+            //friends that came in while offline
             if (relationship === Steam.EFriendRelationship.PendingInvitee) {
                 Steam.addFriend(steamID);
                 console.log(steamID + " was added as a friend");
@@ -140,22 +149,7 @@ app.get('/', function(req, res, next) {
         });
     }
     else {
-        var stats = {};
-        for (var key in steamObj) {
-            stats[key] = {
-                steamID: key,
-                replays: steamObj[key].replays,
-                profiles: steamObj[key].profiles,
-                friends: Object.keys(steamObj[key].friends).length
-            };
-        }
-        var data = {
-            replayRequests: replayRequests,
-            uptime: (new Date() - launch) / 1000,
-            accounts: stats,
-            accountToIdx: accountToIdx
-        };
-        res.locals.data = data;
+        res.locals.data = genStats();
         return next();
     }
 });
@@ -173,3 +167,23 @@ var server = app.listen(process.env.RETRIEVER_PORT || process.env.PORT || 5100, 
     var port = server.address().port;
     console.log('[RETRIEVER] listening at http://%s:%s', host, port);
 });
+
+function genStats() {
+    var stats = {};
+    for (var key in steamObj) {
+        stats[key] = {
+            steamID: key,
+            replays: steamObj[key].replays,
+            profiles: steamObj[key].profiles,
+            friends: Object.keys(steamObj[key].friends).length
+        };
+    }
+    var data = {
+        ready: ready,
+        replayRequests: replayRequests,
+        uptime: (new Date() - launch) / 1000,
+        accounts: stats,
+        accountToIdx: accountToIdx
+    };
+    return data;
+}

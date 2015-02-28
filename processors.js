@@ -179,7 +179,6 @@ function streamReplay(job, cb) {
 
 function runParser(cb) {
     //todo choose a parser to stream from
-    //todo set version based on parser?
     //todo handle parser errors
     var parser_file = "parser/target/stats-0.1.0.jar";
     var entries = [];

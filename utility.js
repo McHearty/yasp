@@ -1,7 +1,6 @@
 var request = require('request'),
     winston = require('winston');
 var BigNumber = require('big-number').n;
-var spawn = require("child_process").spawn;
 var retrievers = (process.env.RETRIEVER_HOST || "localhost:5100").split(",");
 var urllib = require('url');
 var transports = [];
@@ -128,11 +127,6 @@ function getData(url, cb) {
     }, delay);
 }
 
-function getRetrieverUrls() {
-        return retrievers.map(function(r) {
-            return "http://" + r;
-        });
-    }
     /*
      * Converts a steamid 64 to a steamid 32
      *
@@ -212,7 +206,6 @@ module.exports = {
     logger: logger,
     generateJob: generateJob,
     getData: getData,
-    getRetrieverUrls: getRetrieverUrls,
     convert32to64: convert32to64,
     convert64to32: convert64to32,
     isRadiant: isRadiant,
